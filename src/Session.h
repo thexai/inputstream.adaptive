@@ -136,10 +136,8 @@ public:
    *  \param index The index (psshSet number) of the cdm session
    *  \return The single sample decrypter
    */
-  std::shared_ptr<Adaptive_CencSingleSampleDecrypter> GetSingleSampleDecryptor(unsigned int index) const
-  {
-    return m_cdmSessions[index].m_cencSingleSampleDecrypter;
-  }
+  std::shared_ptr<Adaptive_CencSingleSampleDecrypter> GetSingleSampleDecryptor(
+      unsigned int index) const;
 
   /*! \brief Get the decrypter (DRM lib)
    *  \return The decrypter
