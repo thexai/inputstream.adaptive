@@ -447,6 +447,14 @@ bool adaptive::CHLSTree::ProcessChildManifest(PLAYLIST::CPeriod* period,
   size_t adpSetPos = GetPtrPosition(period->GetAdaptationSets(), adp);
   size_t reprPos = GetPtrPosition(adp->GetRepresentations(), rep);
 
+  if (!m_isLive)
+  {
+    // VOD streaming must be updated always from the first period
+    period = m_periods[0].get();
+    adp = period->GetAdaptationSets()[adpSetPos].get();
+    rep = adp->GetRepresentations()[reprPos].get();
+  }
+
   rep->SetBaseUrl(sourceUrl);
 
   EncryptionType currentEncryptionType = EncryptionType::NONE;
