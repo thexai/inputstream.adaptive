@@ -388,10 +388,24 @@ AP4_Result CFragmentedSampleReader::ProcessMoof(AP4_ContainerAtom* moof,
       if (!m_protectedDesc || !traf)
         return AP4_ERROR_INVALID_FORMAT;
 
+      bool isDefaultProtected{true};
+      AP4_ContainerAtom* schi = m_protectedDesc->GetSchemeInfo()->GetSchiAtom();
+      if (schi)
+      {
+        AP4_CencTrackEncryption* trackEnc =
+            AP4_DYNAMIC_CAST(AP4_CencTrackEncryption, schi->GetChild(AP4_ATOM_TYPE_TENC));
+        if (!trackEnc)
+          trackEnc = AP4_DYNAMIC_CAST(AP4_CencTrackEncryption,
+                                      schi->GetChild(AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM));
+        if (trackEnc)
+          isDefaultProtected = trackEnc->GetDefaultIsProtected() != 0;
+      }
+
       // If the boxes saiz, saio, senc are missing, the stream does not conform to the specs and
       // may not be decrypted, so try create an empty senc where all samples will use the same default IV
-      if (!traf->GetChild(AP4_ATOM_TYPE_SAIO) && !traf->GetChild(AP4_ATOM_TYPE_SAIZ) &&
-          !traf->GetChild(AP4_ATOM_TYPE_SENC))
+      if (isDefaultProtected && !traf->GetChild(AP4_ATOM_TYPE_SAIO) &&
+          !traf->GetChild(AP4_ATOM_TYPE_SAIZ) && !traf->GetChild(AP4_ATOM_TYPE_SENC) &&
+          !traf->GetChild(AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM))
       {
         traf->AddChild(new AP4_SencAtom());
       }

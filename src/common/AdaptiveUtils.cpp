@@ -133,7 +133,10 @@ AP4_Movie* PLAYLIST::CreateMovieAtom(adaptive::AdaptiveStream& adStream,
       defaultKid = DRM::ConvertKidStrToBytes(psshSet.defaultKID_);
 
     AP4_ContainerAtom schi{AP4_ATOM_TYPE_SCHI};
-    schi.AddChild(new AP4_TencAtom(AP4_CENC_CIPHER_AES_128_CTR, 8, defaultKid.data()));
+    // Note TENC default_isProtected parameter is intentionally set to 0 (not encrypted)
+    // this is to prevent CFragmentedSampleReader::ProcessMoof from trying to create a SENC atom
+    // and so avoid decrypting with a CAdaptiveCencSampleDecrypter
+    schi.AddChild(new AP4_TencAtom(0, 8, defaultKid.data()));
     sampleDesc = new AP4_ProtectedSampleDescription(0, sampleDesc, 0,
                                                     AP4_PROTECTION_SCHEME_TYPE_PIFF, 0, "", &schi);
   }
