@@ -248,13 +248,15 @@ bool CInputStreamAdaptive::OpenStream(int streamid)
 
   ContainerType reprContainerType = rep->GetContainerType();
   uint32_t mask = (1U << stream->m_info.GetStreamType()) | m_session->GetIncludedStreamMask();
-  auto reader = ADP::CreateStreamReader(reprContainerType, stream, static_cast<uint32_t>(streamid), mask);
+  auto reader = ADP::CreateStreamReader(reprContainerType, stream, mask);
 
   if (!reader)
   {
     m_session->EnableStream(stream, false);
     return false;
   }
+
+  reader->SetStreamId(stream->m_info.GetStreamType(), streamid);
 
   uint16_t psshSetPos = stream->m_adStream.getRepresentation()->m_psshSetPos;
   reader->SetDecrypter(m_session->GetSingleSampleDecryptor(psshSetPos),

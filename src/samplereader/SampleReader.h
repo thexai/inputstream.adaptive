@@ -77,13 +77,16 @@ public:
   virtual bool GetFragmentInfo(uint64_t& duration) { return false; }
 
   virtual uint32_t GetTimeScale() const = 0;
-  virtual AP4_UI32 GetStreamId() const = 0;
+
+  virtual int GetStreamId() const { return m_streamId; }
+  virtual void SetStreamId(INPUTSTREAM_TYPE type, int streamId) { m_streamId = streamId; }
+
   virtual AP4_Size GetSampleDataSize() const = 0;
   virtual const AP4_Byte* GetSampleData() const = 0;
   virtual uint64_t GetDuration() const = 0;
   virtual bool IsEncrypted() const = 0;
-  virtual void AddStreamType(INPUTSTREAM_TYPE type, uint32_t sid) {};
-  virtual void SetStreamType(INPUTSTREAM_TYPE type, uint32_t sid) {};
+  virtual void AddStreamType(INPUTSTREAM_TYPE type, int streamId) {}
+  virtual void SetStreamType(INPUTSTREAM_TYPE type, int streamId) {}
   virtual bool RemoveStreamType(INPUTSTREAM_TYPE type) { return true; };
   virtual bool IsStarted() const = 0;
   virtual CryptoInfo GetReaderCryptoInfo() const { return CryptoInfo(); }
@@ -123,4 +126,5 @@ protected:
 
 private:
   std::future<AP4_Result> m_readSampleAsyncState;
+  int m_streamId{0};
 };

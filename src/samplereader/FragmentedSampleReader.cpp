@@ -35,11 +35,8 @@ constexpr uint8_t MP4_TFRFBOX_UUID[] = {0xd4, 0x80, 0x7e, 0xf2, 0xca, 0x39, 0x46
 
 CFragmentedSampleReader::CFragmentedSampleReader(AP4_ByteStream* input,
                                                  AP4_Movie* movie,
-                                                 AP4_Track* track,
-                                                 AP4_UI32 streamId)
-  : AP4_LinearReader{*movie, input},
-    m_track{track},
-    m_streamId{streamId}
+                                                 AP4_Track* track)
+  : AP4_LinearReader{*movie, input}, m_track{track}
 {
 }
 

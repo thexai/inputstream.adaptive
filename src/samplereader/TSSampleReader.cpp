@@ -10,14 +10,14 @@
 
 #include "AdaptiveByteStream.h"
 
-CTSSampleReader::CTSSampleReader(AP4_ByteStream* input,
-                               INPUTSTREAM_TYPE type,
-                               AP4_UI32 streamId,
-                               uint32_t requiredMask)
-  : TSReader{input, requiredMask},
-    m_adByteStream{dynamic_cast<CAdaptiveByteStream*>(input)},
-    m_typeMask{1U << type}
+CTSSampleReader::CTSSampleReader(AP4_ByteStream* input, uint32_t requiredMask)
+  : TSReader{input, requiredMask}, m_adByteStream{dynamic_cast<CAdaptiveByteStream*>(input)}
 {
+}
+
+void CTSSampleReader::SetStreamId(INPUTSTREAM_TYPE type, int streamId)
+{
+  m_typeMask = 1U << type;
   m_typeMap[INPUTSTREAM_TYPE_NONE] = streamId;
   m_typeMap[type] = streamId;
 }
@@ -27,17 +27,17 @@ bool CTSSampleReader::Initialize(SESSION::CStream* stream)
   return TSReader::Initialize();
 }
 
-void CTSSampleReader::AddStreamType(INPUTSTREAM_TYPE type, uint32_t sid)
+void CTSSampleReader::AddStreamType(INPUTSTREAM_TYPE type, int streamId)
 {
-  m_typeMap[type] = sid;
+  m_typeMap[type] = streamId;
   m_typeMask |= (1 << type);
   if (m_started)
     StartStreaming(m_typeMask);
 }
 
-void CTSSampleReader::SetStreamType(INPUTSTREAM_TYPE type, uint32_t sid)
+void CTSSampleReader::SetStreamType(INPUTSTREAM_TYPE type, int streamId)
 {
-  m_typeMap[type] = sid;
+  m_typeMap[type] = streamId;
   m_typeMask = (1 << type);
 }
 

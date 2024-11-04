@@ -24,27 +24,25 @@ using namespace PLAYLIST;
 
 std::unique_ptr<ISampleReader> ADP::CreateStreamReader(PLAYLIST::ContainerType& containerType,
                                                        SESSION::CStream* stream,
-                                                       uint32_t streamId,
                                                        uint32_t includedStreamMask)
 {
   std::unique_ptr<ISampleReader> reader;
 
   if (containerType == ContainerType::TEXT)
   {
-    reader = std::make_unique<CSubtitleSampleReader>(streamId);
+    reader = std::make_unique<CSubtitleSampleReader>();
   }
   else if (containerType == ContainerType::TS)
   {
-    reader = std::make_unique<CTSSampleReader>(
-        stream->GetAdByteStream(), stream->m_info.GetStreamType(), streamId, includedStreamMask);
+    reader = std::make_unique<CTSSampleReader>(stream->GetAdByteStream(), includedStreamMask);
   }
   else if (containerType == ContainerType::ADTS)
   {
-    reader = std::make_unique<CADTSSampleReader>(stream->GetAdByteStream(), streamId);
+    reader = std::make_unique<CADTSSampleReader>(stream->GetAdByteStream());
   }
   else if (containerType == ContainerType::WEBM)
   {
-    reader = std::make_unique<CWebmSampleReader>(stream->GetAdByteStream(), streamId);
+    reader = std::make_unique<CWebmSampleReader>(stream->GetAdByteStream());
   }
   else if (containerType == ContainerType::MP4)
   {
@@ -85,8 +83,7 @@ std::unique_ptr<ISampleReader> ADP::CreateStreamReader(PLAYLIST::ContainerType& 
       return nullptr;
     }
 
-    reader = std::make_unique<CFragmentedSampleReader>(stream->GetAdByteStream(), movie, track,
-                                                       streamId);
+    reader = std::make_unique<CFragmentedSampleReader>(stream->GetAdByteStream(), movie, track);
   }
   else
   {
@@ -110,7 +107,7 @@ std::unique_ptr<ISampleReader> ADP::CreateStreamReader(PLAYLIST::ContainerType& 
       stream->m_adStream.getRepresentation()->SetContainerType(containerType);
 
       stream->GetAdByteStream()->Seek(0); // Seek because bytes are consumed from previous reader
-      reader = std::make_unique<CADTSSampleReader>(stream->GetAdByteStream(), streamId);
+      reader = std::make_unique<CADTSSampleReader>(stream->GetAdByteStream());
       if (!reader->Initialize(stream))
         reader.reset();
     }
