@@ -1,3 +1,9 @@
+v22.1.9 (2024-11-05)
+- New test samples python addon (on github sources or see wiki)
+- [SmoothStreaming] Fix corrupted playback regression
+- [HLS] Fix VOD playback problems with periods
+- [HLS] Fix possible crash on stream quality change
+
 v22.1.8 (2024-10-28)
 - Fixed playback problems when playing videos with different drm in sequence
 
