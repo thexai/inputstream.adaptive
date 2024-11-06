@@ -57,7 +57,7 @@ public:
 
 private:
   std::shared_ptr<SESSION::CSession> m_session;
-  std::map<INPUTSTREAM_TYPE, unsigned int> m_IncludedStreams;
+  std::map<INPUTSTREAM_TYPE, int> m_IncludedStreams; // stream type - stream id
   int m_failedSeekTime = ~0;
   std::string m_chapterName;
   // The last PTS of the segment package fed to kodi.

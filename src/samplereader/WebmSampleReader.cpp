@@ -10,10 +10,8 @@
 
 #include "AdaptiveByteStream.h"
 
-CWebmSampleReader::CWebmSampleReader(AP4_ByteStream* input, AP4_UI32 streamId)
-  : WebmReader{input},
-    m_streamId{streamId},
-    m_adByteStream{dynamic_cast<CAdaptiveByteStream*>(input)} {};
+CWebmSampleReader::CWebmSampleReader(AP4_ByteStream* input)
+  : WebmReader{input}, m_adByteStream{dynamic_cast<CAdaptiveByteStream*>(input)} {};
 
 bool CWebmSampleReader::Initialize(SESSION::CStream* stream)
 {

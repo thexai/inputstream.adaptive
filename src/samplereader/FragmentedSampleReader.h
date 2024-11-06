@@ -18,10 +18,7 @@ class CodecHandler;
 class ATTR_DLL_LOCAL CFragmentedSampleReader : public ISampleReader, public AP4_LinearReader
 {
 public:
-  CFragmentedSampleReader(AP4_ByteStream* input,
-                         AP4_Movie* movie,
-                         AP4_Track* track,
-                         AP4_UI32 streamId);
+  CFragmentedSampleReader(AP4_ByteStream* input, AP4_Movie* movie, AP4_Track* track);
 
   ~CFragmentedSampleReader();
 
@@ -36,7 +33,6 @@ public:
   bool IsStarted() const override { return m_started; }
   uint64_t DTS() const override { return m_dts; }
   uint64_t PTS() const override { return m_pts; }
-  AP4_UI32 GetStreamId() const override { return m_streamId; }
   AP4_Size GetSampleDataSize() const override { return m_sampleData.GetDataSize(); }
   const AP4_Byte* GetSampleData() const override { return m_sampleData.GetData(); }
   uint64_t GetDuration() const override;
@@ -61,7 +57,6 @@ private:
 
   AP4_Track* m_track;
   AP4_UI32 m_poolId{0};
-  AP4_UI32 m_streamId;
   AP4_UI32 m_sampleDescIndex{1};
   DRM::DecrypterCapabilites m_decrypterCaps;
   unsigned int m_failCount{0};

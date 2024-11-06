@@ -27,10 +27,6 @@
 using namespace PLAYLIST;
 using namespace UTILS;
 
-CSubtitleSampleReader::CSubtitleSampleReader(AP4_UI32 streamId) : m_streamId{streamId}
-{
-}
-
 bool CSubtitleSampleReader::Initialize(SESSION::CStream* stream)
 {
 

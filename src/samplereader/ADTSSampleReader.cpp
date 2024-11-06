@@ -10,10 +10,8 @@
 
 #include "AdaptiveByteStream.h"
 
-CADTSSampleReader::CADTSSampleReader(AP4_ByteStream* input, AP4_UI32 streamId)
-  : ADTSReader{input},
-    m_streamId{streamId},
-    m_adByteStream{dynamic_cast<CAdaptiveByteStream*>(input)}
+CADTSSampleReader::CADTSSampleReader(AP4_ByteStream* input)
+  : ADTSReader{input}, m_adByteStream{dynamic_cast<CAdaptiveByteStream*>(input)}
 {
 }
 
