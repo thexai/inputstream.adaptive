@@ -10,6 +10,7 @@
 
 #include "Base64Utils.h"
 #include "StringUtils.h"
+#include "log.h"
 #include "kodi/tools/StringUtils.h"
 
 #include <algorithm> // any_of
@@ -20,33 +21,19 @@
 using namespace UTILS;
 using namespace kodi::tools;
 
-std::vector<uint8_t> UTILS::AnnexbToHvcc(const char* b16Data)
+std::vector<uint8_t> UTILS::AnnexbToHvcc(const std::vector<uint8_t>& annexb)
 {
-  size_t sz = strlen(b16Data) >> 1;
-  size_t szRun(sz);
   std::vector<uint8_t> result;
 
-  if (sz > 1024)
-    return result;
-
-  std::vector<uint8_t> buffer(szRun);
-  uint8_t* data = buffer.data();
-
-  while (szRun--)
+  size_t sz = annexb.size();
+  if (sz <= 6 || annexb[0] != 0 || annexb[1] != 0 || annexb[2] != 0 || annexb[3] != 1)
   {
-    *data = (STRING::ToHexNibble(*b16Data) << 4) + STRING::ToHexNibble(*(b16Data + 1));
-    b16Data += 2;
-    ++data;
+    return annexb;
   }
 
-  if (sz <= 6 || buffer[0] != 0 || buffer[1] != 0 || buffer[2] != 0 || buffer[3] != 1)
-  {
-    return buffer;
-  }
-
-  data = buffer.data() + 4;
-  uint8_t* nalPos[4] = {data, nullptr, nullptr, nullptr};
-  uint8_t* end = buffer.data() + sz;
+  const uint8_t* data = annexb.data() + 4;
+  const uint8_t* nalPos[4] = {data, nullptr, nullptr, nullptr};
+  const uint8_t* end = annexb.data() + sz;
 
   while (data + 4 <= end && (data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 1))
   {
@@ -75,49 +62,38 @@ std::vector<uint8_t> UTILS::AnnexbToHvcc(const char* b16Data)
       nalPos[0][1] == 1 && nalPos[1][0] == 0x42 && nalPos[1][1] == 1 && nalPos[2][0] == 0x44 &&
       nalPos[2][1] == 1)
   {
-    sz = 22 + sz - 12 + 16;
+
+    size_t sz = 22 + annexb.size() - 12 + 16;
     result.resize(sz, 0); // Unknown HVCC fields
-    data = result.data() + 22;
-    *data = 3, ++data; //numSequences;
-    for (unsigned int i(0); i < 3; ++i)
+    uint8_t* resultData = result.data() + 22;
+    *resultData = 3, ++resultData; // numSequences
+
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      *data = nalPos[i][0] >> 1, ++data; //Nalu type
-      data[0] = 0, data[1] = 1, data += 2; //count nals
+      *resultData = nalPos[i][0] >> 1, ++resultData; // Nalu type
+      resultData[0] = 0, resultData[1] = 1, resultData += 2; // count nals
       uint16_t nalSz = static_cast<uint16_t>(nalPos[i + 1] - nalPos[i] - 4);
-      data[0] = nalSz >> 8, data[1] = nalSz & 0xFF, data += 2; //count nals
-      std::memcpy(data, nalPos[i], nalSz), data += nalSz;
+      resultData[0] = nalSz >> 8, resultData[1] = nalSz & 0xFF, resultData += 2; // count nals
+      std::memcpy(resultData, nalPos[i], nalSz), resultData += nalSz;
     }
   }
   return result;
 }
 
-std::vector<uint8_t> UTILS::AnnexbToAvc(const char* b16Data)
+std::vector<uint8_t> UTILS::AnnexbToAvc(const std::vector<uint8_t>& annexb)
 {
-  size_t sz = std::strlen(b16Data) >> 1;
-  size_t szRun = sz;
   std::vector<uint8_t> result;
 
-  if (sz > 1024)
-    return result;
-
-  std::vector<uint8_t> buffer(szRun);
-  uint8_t* bufferData = buffer.data();
-
-  while (szRun--)
+  if (annexb.size() <= 6 || annexb[0] != 0 || annexb[1] != 0 || annexb[2] != 0 || annexb[3] != 1)
   {
-    *bufferData = (STRING::ToHexNibble(*b16Data) << 4) + STRING::ToHexNibble(*(b16Data + 1));
-    b16Data += 2;
-    ++bufferData;
+    return annexb;
   }
 
-  if (sz <= 6 || buffer[0] != 0 || buffer[1] != 0 || buffer[2] != 0 || buffer[3] != 1)
-  {
-    return buffer;
-  }
+  const uint8_t* sps = 0;
+  const uint8_t* pps = 0;
+  const uint8_t* end = annexb.data() + annexb.size();
 
-  uint8_t *sps = 0, *pps = 0, *end = buffer.data() + sz;
-
-  sps = pps = buffer.data() + 4;
+  sps = pps = annexb.data() + 4;
 
   while (pps + 4 <= end && (pps[0] != 0 || pps[1] != 0 || pps[2] != 0 || pps[3] != 1))
   {
@@ -130,7 +106,7 @@ std::vector<uint8_t> UTILS::AnnexbToAvc(const char* b16Data)
 
   pps += 4;
 
-  result.resize(sz + 3); //need 3 byte more for new header
+  result.resize(annexb.size() + 3); //need 3 byte more for new header
   size_t pos(0);
 
   result[pos++] = 1;
@@ -140,7 +116,7 @@ std::vector<uint8_t> UTILS::AnnexbToAvc(const char* b16Data)
   result[pos++] = 0xFFU; //6 bits reserved(111111) + 2 bits nal size length - 1 (11)
   result[pos++] = 0xe1U; //3 bits reserved (111) + 5 bits number of sps (00001)
 
-  sz = pps - sps - 4;
+  size_t sz = pps - sps - 4;
   result[pos++] = static_cast<uint8_t>(sz >> 8);
   result[pos++] = static_cast<uint8_t>(sz & 0xFF);
   for (size_t i = 0; i < sz; ++i)
@@ -158,6 +134,21 @@ std::vector<uint8_t> UTILS::AnnexbToAvc(const char* b16Data)
   }
 
   return result;
+}
+
+bool UTILS::IsAnnexB(const std::vector<uint8_t>& data)
+{
+  if (data.size() >= 4)
+  {
+    // Check for the 4-byte start code
+    if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x00 && data[3] == 0x01)
+      return true;
+
+    // Check for the 3-byte start code
+    if (data[0] == 0x00 && data[1] == 0x00 && data[2] == 0x01)
+      return true;
+  }
+  return false;
 }
 
 std::vector<uint8_t> UTILS::AvcToAnnexb(const std::vector<uint8_t>& avc)

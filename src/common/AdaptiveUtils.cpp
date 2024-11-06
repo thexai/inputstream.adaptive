@@ -77,23 +77,35 @@ AP4_Movie* PLAYLIST::CreateMovieAtom(adaptive::AdaptiveStream& adStream,
                                      kodi::addon::InputstreamInfo& streamInfo)
 {
   CRepresentation* repr = adStream.getRepresentation();
-  const std::vector<uint8_t>& extradata = repr->GetCodecPrivateData();
+  std::vector<uint8_t> extradata = repr->GetCodecPrivateData();
   const std::string codecName = streamInfo.GetCodecName();
   AP4_SampleDescription* sampleDesc;
 
   if (codecName == CODEC::NAME_H264)
   {
+    if (UTILS::IsAnnexB(extradata))
+      extradata = UTILS::AnnexbToAvc(extradata);
+
     AP4_MemoryByteStream ms{extradata.data(), static_cast<const AP4_Size>(extradata.size())};
     AP4_AvccAtom* atom =
         AP4_AvccAtom::Create(static_cast<AP4_Size>(AP4_ATOM_HEADER_SIZE + extradata.size()), ms);
+    if (!atom)
+      LOG::LogF(LOGWARNING, "Unable to create AVCC atom, possible malformed extradata");
+
     sampleDesc = new AP4_AvcSampleDescription(AP4_SAMPLE_FORMAT_AVC1, streamInfo.GetWidth(),
                                               streamInfo.GetHeight(), 0, nullptr, atom);
   }
   else if (codecName == CODEC::NAME_HEVC)
   {
+    if (UTILS::IsAnnexB(extradata))
+      extradata = UTILS::AnnexbToHvcc(extradata);
+
     AP4_MemoryByteStream ms{extradata.data(), static_cast<const AP4_Size>(extradata.size())};
     AP4_HvccAtom* atom =
         AP4_HvccAtom::Create(static_cast<AP4_Size>(AP4_ATOM_HEADER_SIZE + extradata.size()), ms);
+    if (!atom)
+      LOG::LogF(LOGWARNING, "Unable to create HVCC atom, possible malformed extradata");
+
     sampleDesc = new AP4_HevcSampleDescription(AP4_SAMPLE_FORMAT_HEV1, streamInfo.GetWidth(),
                                                streamInfo.GetHeight(), 0, nullptr, atom);
   }
@@ -102,6 +114,9 @@ AP4_Movie* PLAYLIST::CreateMovieAtom(adaptive::AdaptiveStream& adStream,
     AP4_MemoryByteStream ms{extradata.data(), static_cast<const AP4_Size>(extradata.size())};
     AP4_Av1cAtom* atom =
         AP4_Av1cAtom::Create(static_cast<AP4_Size>(AP4_ATOM_HEADER_SIZE + extradata.size()), ms);
+    if (!atom)
+      LOG::LogF(LOGWARNING, "Unable to create AV1C atom, possible malformed extradata");
+
     sampleDesc = new AP4_Av1SampleDescription(AP4_SAMPLE_FORMAT_AV01, streamInfo.GetWidth(),
                                               streamInfo.GetHeight(), 0, nullptr, atom);
   }

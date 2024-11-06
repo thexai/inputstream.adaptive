@@ -246,12 +246,18 @@ bool CFragmentedSampleReader::GetInformation(kodi::addon::InputstreamInfo& info)
   {
     info.SetExtraData(m_codecHandler->m_extraData.GetData(),
                       m_codecHandler->m_extraData.GetDataSize());
-    isChanged |= true;
+    isChanged = true;
+  }
+
+  std::vector<uint8_t> extraData = info.GetExtraData();
+  if (m_codecHandler->CheckExtraData(
+      extraData, (m_decrypterCaps.flags & DRM::DecrypterCapabilites::SSD_ANNEXB_REQUIRED) != 0))
+  {
+    info.SetExtraData(extraData);
+    isChanged = true;
   }
 
   m_bSampleDescChanged = false;
-
-  isChanged |= m_codecHandler->GetInformation(info);
 
   return isChanged;
 }
@@ -488,19 +494,22 @@ void CFragmentedSampleReader::UpdateSampleDescription()
   }
   else
   {
+    const bool isRequiredAnnexB =
+        (m_decrypterCaps.flags & DRM::DecrypterCapabilites::SSD_ANNEXB_REQUIRED) != 0;
+
     switch (desc->GetFormat())
     {
       case AP4_SAMPLE_FORMAT_AVC1:
       case AP4_SAMPLE_FORMAT_AVC2:
       case AP4_SAMPLE_FORMAT_AVC3:
       case AP4_SAMPLE_FORMAT_AVC4:
-        m_codecHandler = new AVCCodecHandler(desc);
+        m_codecHandler = new AVCCodecHandler(desc, isRequiredAnnexB);
         break;
       case AP4_SAMPLE_FORMAT_HEV1:
       case AP4_SAMPLE_FORMAT_HVC1:
       case AP4_SAMPLE_FORMAT_DVHE:
       case AP4_SAMPLE_FORMAT_DVH1:
-        m_codecHandler = new HEVCCodecHandler(desc);
+        m_codecHandler = new HEVCCodecHandler(desc, isRequiredAnnexB);
         break;
       case AP4_SAMPLE_FORMAT_STPP:
         m_codecHandler = new TTMLCodecHandler(desc, false);
@@ -519,9 +528,6 @@ void CFragmentedSampleReader::UpdateSampleDescription()
         break;
     }
   }
-
-  if ((m_decrypterCaps.flags & DRM::DecrypterCapabilites::SSD_ANNEXB_REQUIRED) != 0)
-    m_codecHandler->ExtraDataToAnnexB();
 }
 
 void CFragmentedSampleReader::ParseTrafTfrf(AP4_UuidAtom* uuidAtom)

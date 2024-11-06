@@ -34,6 +34,16 @@ public:
    */
   virtual bool GetInformation(kodi::addon::InputstreamInfo& info);
   virtual bool ExtraDataToAnnexB() { return false; };
+  /*!
+   * \brief Check for extradata data format, if needed it will be converted
+   * \param extraData The data
+   * \param isRequiredAnnexB If the extradata must be in annex b format
+   * \return True if data is changed, otherwise false
+   */
+  virtual bool CheckExtraData(std::vector<uint8_t>& extraData, bool isRequiredAnnexB)
+  {
+    return false;
+  }
   virtual STREAMCODEC_PROFILE GetProfile() { return STREAMCODEC_PROFILE::CodecProfileNotNeeded; };
   virtual bool Transform(AP4_UI64 pts, AP4_UI32 duration, AP4_DataBuffer& buf, AP4_UI64 timescale)
   {
