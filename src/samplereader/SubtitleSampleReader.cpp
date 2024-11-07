@@ -80,7 +80,7 @@ bool CSubtitleSampleReader::InitializeFile(std::string url)
   // Download the file
   CURL::CUrl curl(url);
   curl.AddHeaders(kodiProps.GetStreamHeaders());
-  int statusCode = curl.Open(true);
+  int statusCode = curl.Open();
   if (statusCode == -1)
   {
     LOG::Log(LOGERROR, "Download failed, internal error: %s", url.c_str());

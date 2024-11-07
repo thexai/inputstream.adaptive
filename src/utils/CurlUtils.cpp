@@ -220,13 +220,9 @@ UTILS::CURL::CUrl::~CUrl()
   m_file.Close();
 }
 
-int UTILS::CURL::CUrl::Open(bool isMediaStream /* = false */)
+int UTILS::CURL::CUrl::Open()
 {
-  unsigned int flags = ADDON_READ_NO_CACHE | ADDON_READ_CHUNKED;
-  if (isMediaStream)
-    flags |= ADDON_READ_AUDIO_VIDEO;
-
-  if (!m_file.CURLOpen(flags))
+  if (!m_file.CURLOpen(ADDON_READ_NO_CACHE | ADDON_READ_NO_BUFFER))
   {
     LOG::LogF(LOGERROR, "CURLOpen failed");
     return -1;

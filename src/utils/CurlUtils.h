@@ -53,10 +53,9 @@ public:
 
  /*!
   * \brief Open the url.
-  * \param isMediaStream Set true if the download is a media stream (audio/video/subtitles)
   * \return Return HTTP status code, or -1 for any internal error
   */
-  int Open(bool isMediaStream = false);
+  int Open();
 
   void AddHeader(std::string_view name, std::string_view value);
   void AddHeaders(const std::map<std::string, std::string>& headers);

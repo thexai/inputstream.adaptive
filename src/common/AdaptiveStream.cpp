@@ -135,7 +135,7 @@ bool adaptive::AdaptiveStream::DownloadImpl(const DownloadInfo& downloadInfo,
   CURL::CUrl curl{url};
   curl.AddHeaders(headers);
 
-  int statusCode = curl.Open(true);
+  int statusCode = curl.Open();
 
   if (statusCode == -1)
     LOG::Log(LOGERROR, "[AS-%u] Download failed, internal error: %s", clsId, url.c_str());
