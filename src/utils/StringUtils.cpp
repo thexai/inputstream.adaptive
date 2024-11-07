@@ -7,6 +7,7 @@
  */
 
 #include "StringUtils.h"
+#include "log.h"
 
 #include "kodi/tools/StringUtils.h"
 
@@ -332,4 +333,24 @@ std::string UTILS::STRING::Trim(std::string value)
 {
   StringUtils::Trim(value);
   return value;
+}
+
+std::vector<uint8_t> UTILS::STRING::HexToBytes(const std::string& hex)
+{
+  std::vector<uint8_t> bytes;
+  if (hex.size() % 2 != 0)
+  {
+    // Handle error for strings with an odd number of characters
+    LOG::LogF(LOGERROR, "Cannot convert hex to bytes, string length is not valid");
+    return bytes;
+  }
+
+  for (size_t i = 0; i < hex.size(); i += 2)
+  {
+    unsigned char highNibble = ToHexNibble(hex[i]);
+    unsigned char lowNibble = ToHexNibble(hex[i + 1]);
+    bytes.emplace_back((highNibble << 4) | lowNibble);
+  }
+
+  return bytes;
 }

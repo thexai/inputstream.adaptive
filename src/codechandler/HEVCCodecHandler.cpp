@@ -13,15 +13,44 @@
 
 using namespace UTILS;
 
-HEVCCodecHandler::HEVCCodecHandler(AP4_SampleDescription* sd) : CodecHandler(sd)
+HEVCCodecHandler::HEVCCodecHandler(AP4_SampleDescription* sd, bool isRequiredAnnexB)
+  : CodecHandler(sd)
 {
   if (AP4_HevcSampleDescription* hevcSampleDescription =
           AP4_DYNAMIC_CAST(AP4_HevcSampleDescription, m_sampleDescription))
   {
-    m_extraData.SetData(hevcSampleDescription->GetRawBytes().GetData(),
-                        hevcSampleDescription->GetRawBytes().GetDataSize());
+    if (isRequiredAnnexB)
+    {
+      ExtraDataToAnnexB();
+    }
+    else
+    {
+      m_extraData.SetData(hevcSampleDescription->GetRawBytes().GetData(),
+                          hevcSampleDescription->GetRawBytes().GetDataSize());
+    }
     m_naluLengthSize = hevcSampleDescription->GetNaluLengthSize();
   }
+}
+
+bool HEVCCodecHandler::CheckExtraData(std::vector<uint8_t>& extraData, bool isRequiredAnnexB)
+{
+  if (extraData.empty())
+    return false;
+
+  // Make sure that extradata is in the required format
+  if (isRequiredAnnexB && !UTILS::IsAnnexB(extraData))
+  {
+    //! @todo: this was never implemented on the older ISA versions
+    LOG::LogF(LOGDEBUG, "Required extradata annex b format, data conversion not implemented");
+    return false;
+  }
+  if (!isRequiredAnnexB && UTILS::IsAnnexB(extraData))
+  {
+    extraData = UTILS::AnnexbToHvcc(extraData);
+    return true;
+  }
+
+  return false;
 }
 
 bool HEVCCodecHandler::ExtraDataToAnnexB()

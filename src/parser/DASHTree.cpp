@@ -747,8 +747,11 @@ void adaptive::CDashTree::ParseTagRepresentation(pugi::xml_node nodeRepr,
 
   // ISA custom attribute
   // No dash spec, looks like a custom Amazon video service implementation
-  repr->SetCodecPrivateData(
-      UTILS::AnnexbToAvc(XML::GetAttrib(nodeRepr, "codecPrivateData").data()));
+  std::string codecPrivateData;
+  if (XML::QueryAttrib(nodeRepr, "codecPrivateData", codecPrivateData))
+  {
+    repr->SetCodecPrivateData(STRING::HexToBytes(codecPrivateData));
+  }
 
   // ISA custom attribute
   repr->SetSampleRate(XML::GetAttribUint32(nodeRepr, "audioSamplingRate"));

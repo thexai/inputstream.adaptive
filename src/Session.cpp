@@ -701,24 +701,7 @@ void SESSION::CSession::UpdateStream(CStream& stream)
   stream.m_info.SetExtraData(nullptr, 0);
 
   if (!rep->GetCodecPrivateData().empty())
-  {
-    std::vector<uint8_t> annexb;
-    const std::vector<uint8_t>* extraData(&annexb);
-
-    const DRM::DecrypterCapabilites& caps{GetDecrypterCaps(rep->m_psshSetPos)};
-
-    if ((caps.flags & DRM::DecrypterCapabilites::SSD_ANNEXB_REQUIRED) &&
-        stream.m_info.GetStreamType() == INPUTSTREAM_TYPE_VIDEO)
-    {
-      LOG::Log(LOGDEBUG, "UpdateStream: Convert avc -> annexb");
-      annexb = AvcToAnnexb(rep->GetCodecPrivateData());
-    }
-    else
-    {
-      extraData = &rep->GetCodecPrivateData();
-    }
-    stream.m_info.SetExtraData(extraData->data(), extraData->size());
-  }
+    stream.m_info.SetExtraData(rep->GetCodecPrivateData());
 
   stream.m_info.SetCodecFourCC(0);
   stream.m_info.SetBitRate(rep->GetBandwidth());

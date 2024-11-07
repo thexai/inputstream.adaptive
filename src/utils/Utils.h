@@ -22,8 +22,9 @@ constexpr uint8_t DEFAULT_KEYID[16]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 // Placeholder for unknown AP4_Track id
 constexpr uint32_t AP4_TRACK_ID_UNKNOWN = -1;
 
-std::vector<uint8_t> AnnexbToHvcc(const char* b16Data);
-std::vector<uint8_t> AnnexbToAvc(const char* b16Data);
+std::vector<uint8_t> AnnexbToHvcc(const std::vector<uint8_t>& annexb);
+std::vector<uint8_t> AnnexbToAvc(const std::vector<uint8_t>& annexb);
+bool IsAnnexB(const std::vector<uint8_t>& data);
 std::vector<uint8_t> AvcToAnnexb(const std::vector<uint8_t>& avc);
 
 void ParseHeaderString(std::map<std::string, std::string>& headerMap, const std::string& header);

@@ -283,5 +283,12 @@ std::string ToHexadecimal(const std::vector<uint8_t> data);
  */
 std::string Trim(std::string value);
 
+/*!
+ * \brief Convert a hex string to bytes.
+ * \param hex The hex string
+ * \return The string on its byte representation
+ */
+std::vector<uint8_t> HexToBytes(const std::string& hex);
+
 } // namespace STRING
 } // namespace UTILS
