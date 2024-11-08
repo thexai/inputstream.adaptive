@@ -257,6 +257,8 @@ bool CFragmentedSampleReader::GetInformation(kodi::addon::InputstreamInfo& info)
     isChanged = true;
   }
 
+  isChanged |= m_codecHandler->GetInformation(info);
+
   m_bSampleDescChanged = false;
 
   return isChanged;
