@@ -17,6 +17,7 @@
 #include "common/Chooser.h"
 #include "decrypters/DrmFactory.h"
 #include "decrypters/Helpers.h"
+#include "parser/PRProtectionParser.h"
 #include "utils/Base64Utils.h"
 #include "utils/CurlUtils.h"
 #include "utils/StringUtils.h"
@@ -418,7 +419,7 @@ bool CSession::InitializeDRM(bool addDefaultKID /* = false */)
       if (sessionPsshset.adaptation_set_->GetStreamType() == StreamType::NOTYPE)
         continue;
 
-      const std::vector<uint8_t> defaultKid = DRM::ConvertKidStrToBytes(sessionPsshset.defaultKID_);
+      std::string defaultKidStr = sessionPsshset.defaultKID_;
       std::string_view licenseDataStr = CSrvBroker::GetKodiProps().GetLicenseData();
 
       if (m_adaptiveTree->GetTreeType() == adaptive::TreeType::SMOOTH_STREAMING)
@@ -441,7 +442,7 @@ bool CSession::InitializeDRM(bool addDefaultKID /* = false */)
                      licenseData.empty() ? "" : "(with custom data)");
 
             std::vector<uint8_t> wvPsshData;
-            if (DRM::MakeWidevinePsshData(defaultKid, licenseData, wvPsshData))
+            if (DRM::MakeWidevinePsshData(DRM::ConvertKidStrToBytes(defaultKidStr), licenseData, wvPsshData))
               DRM::MakePssh(DRM::ID_WIDEVINE, wvPsshData, initData);
           }
         }
@@ -469,6 +470,17 @@ bool CSession::InitializeDRM(bool addDefaultKID /* = false */)
         initData = BASE64::Decode(licenseDataStr);
       }
 
+      // If no KID, but init data, extract the KID from init data
+      if (!initData.empty() && defaultKidStr.empty())
+      {
+        CPsshParser parser;
+        if (parser.Parse(initData) && !parser.GetKeyIds().empty())
+        {
+          LOG::Log(LOGDEBUG, "Default KID parsed from init data");
+          defaultKidStr = STRING::ToHexadecimal(parser.GetKeyIds()[0]);
+        }
+      }
+
       if (initData.empty() && sessionPsshset.m_licenseUrl.empty())
       {
         if (!sessionPsshset.pssh_.empty())
@@ -485,6 +497,8 @@ bool CSession::InitializeDRM(bool addDefaultKID /* = false */)
         }
       }
 
+      const std::vector<uint8_t> defaultKid = DRM::ConvertKidStrToBytes(defaultKidStr);
+
       if (addDefaultKID && ses == 1 && session.m_cencSingleSampleDecrypter)
       {
         // If the CDM has been pre-initialized, on non-android systems
@@ -496,7 +510,7 @@ bool CSession::InitializeDRM(bool addDefaultKID /* = false */)
 
       if (m_decrypter && !defaultKid.empty())
       {
-        LOG::Log(LOGDEBUG, "Initializing stream with KID: %s", sessionPsshset.defaultKID_.c_str());
+        LOG::Log(LOGDEBUG, "Initializing stream with KID: %s", defaultKidStr.c_str());
 
         for (size_t i{1}; i < ses; ++i)
         {
