@@ -94,6 +94,9 @@ bool CFragmentedSampleReader::Initialize(SESSION::CStream* stream)
       break;
   }
 
+  // Create codec handler and get extradata
+  UpdateSampleDescription();
+
   return true;
 }
 
@@ -107,9 +110,6 @@ void CFragmentedSampleReader::SetDecrypter(std::shared_ptr<Adaptive_CencSingleSa
   }
   
   m_decrypterCaps = dcaps;
-
-  // We need this to fill extradata
-  UpdateSampleDescription();
 }
 
 AP4_Result CFragmentedSampleReader::Start(bool& bStarted)
@@ -239,6 +239,8 @@ bool CFragmentedSampleReader::GetInformation(kodi::addon::InputstreamInfo& info)
   if (!m_codecHandler)
     return false;
 
+  // Note: when a manifest provides extradata, it will already be set to InputstreamInfo
+
   bool isChanged{false};
   if (m_bSampleDescChanged && m_codecHandler->m_extraData.GetDataSize() &&
       !info.CompareExtraData(m_codecHandler->m_extraData.GetData(),
@@ -361,6 +363,18 @@ AP4_Result CFragmentedSampleReader::ProcessMoof(AP4_ContainerAtom* moof,
     {
       m_sampleDescIndex = tfhd->GetSampleDescriptionIndex();
       UpdateSampleDescription();
+
+      //! @todo: mix of types AP4_DataBuffer vs std::vector<uint8_t>
+      //! bento4 AP4_DataBuffer is not really needed, to change it required also decrypters cleanups
+      AP4_DataBuffer& chExtradata = m_codecHandler->m_extraData;
+      std::vector<uint8_t> extradata(chExtradata.GetData(),
+                                     chExtradata.GetData() + chExtradata.GetDataSize());
+      if (m_codecHandler->CheckExtraData(
+              extradata,
+              (m_decrypterCaps.flags & DRM::DecrypterCapabilites::SSD_ANNEXB_REQUIRED) != 0))
+      {
+        m_codecHandler->m_extraData.SetData(extradata.data(), extradata.size());
+      }
     }
 
     //Correct PTS
@@ -496,22 +510,19 @@ void CFragmentedSampleReader::UpdateSampleDescription()
   }
   else
   {
-    const bool isRequiredAnnexB =
-        (m_decrypterCaps.flags & DRM::DecrypterCapabilites::SSD_ANNEXB_REQUIRED) != 0;
-
     switch (desc->GetFormat())
     {
       case AP4_SAMPLE_FORMAT_AVC1:
       case AP4_SAMPLE_FORMAT_AVC2:
       case AP4_SAMPLE_FORMAT_AVC3:
       case AP4_SAMPLE_FORMAT_AVC4:
-        m_codecHandler = new AVCCodecHandler(desc, isRequiredAnnexB);
+        m_codecHandler = new AVCCodecHandler(desc);
         break;
       case AP4_SAMPLE_FORMAT_HEV1:
       case AP4_SAMPLE_FORMAT_HVC1:
       case AP4_SAMPLE_FORMAT_DVHE:
       case AP4_SAMPLE_FORMAT_DVH1:
-        m_codecHandler = new HEVCCodecHandler(desc, isRequiredAnnexB);
+        m_codecHandler = new HEVCCodecHandler(desc);
         break;
       case AP4_SAMPLE_FORMAT_STPP:
         m_codecHandler = new TTMLCodecHandler(desc, false);

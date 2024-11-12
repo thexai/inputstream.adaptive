@@ -12,7 +12,7 @@
 
 using namespace UTILS;
 
-AVCCodecHandler::AVCCodecHandler(AP4_SampleDescription* sd, bool isRequiredAnnexB)
+AVCCodecHandler::AVCCodecHandler(AP4_SampleDescription* sd)
   : CodecHandler{sd},
     m_countPictureSetIds{0},
     m_needSliceInfo{false},
@@ -29,16 +29,8 @@ AVCCodecHandler::AVCCodecHandler(AP4_SampleDescription* sd, bool isRequiredAnnex
   if (AP4_AvcSampleDescription* avcSampleDescription =
           AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, m_sampleDescription))
   {
-    if (isRequiredAnnexB)
-    {
-      ExtraDataToAnnexB();
-    }
-    else
-    {
-      m_extraData.SetData(avcSampleDescription->GetRawBytes().GetData(),
-                          avcSampleDescription->GetRawBytes().GetDataSize());
-    }
-
+    m_extraData.SetData(avcSampleDescription->GetRawBytes().GetData(),
+                        avcSampleDescription->GetRawBytes().GetDataSize());
     m_countPictureSetIds = avcSampleDescription->GetPictureParameters().ItemCount();
     m_naluLengthSize = avcSampleDescription->GetNaluLengthSize();
     m_needSliceInfo = (m_countPictureSetIds > 1 || width == 0 || height == 0);
@@ -84,50 +76,6 @@ bool AVCCodecHandler::CheckExtraData(std::vector<uint8_t>& extraData, bool isReq
   {
     extraData = UTILS::AnnexbToAvc(extraData);
     return true;
-  }
-
-  return false;
-}
-
-bool AVCCodecHandler::ExtraDataToAnnexB()
-{
-  if (AP4_AvcSampleDescription* avcSampleDescription =
-          AP4_DYNAMIC_CAST(AP4_AvcSampleDescription, m_sampleDescription))
-  {
-    //calculate the size for annexb
-    AP4_Size sz(0);
-    AP4_Array<AP4_DataBuffer>& pps(avcSampleDescription->GetPictureParameters());
-    for (unsigned int i{0}; i < pps.ItemCount(); ++i)
-      sz += 4 + pps[i].GetDataSize();
-    AP4_Array<AP4_DataBuffer>& sps(avcSampleDescription->GetSequenceParameters());
-    for (unsigned int i{0}; i < sps.ItemCount(); ++i)
-      sz += 4 + sps[i].GetDataSize();
-
-    if (sz > 0)
-    {
-      m_extraData.SetDataSize(sz);
-      AP4_Byte* cursor(m_extraData.UseData());
-
-      for (unsigned int i{0}; i < sps.ItemCount(); ++i)
-      {
-        cursor[0] = 0;
-        cursor[1] = 0;
-        cursor[2] = 0;
-        cursor[3] = 1;
-        memcpy(cursor + 4, sps[i].GetData(), sps[i].GetDataSize());
-        cursor += sps[i].GetDataSize() + 4;
-      }
-      for (unsigned int i{0}; i < pps.ItemCount(); ++i)
-      {
-        cursor[0] = 0;
-        cursor[1] = 0;
-        cursor[2] = 0;
-        cursor[3] = 1;
-        memcpy(cursor + 4, pps[i].GetData(), pps[i].GetDataSize());
-        cursor += pps[i].GetDataSize() + 4;
-      }
-      return true;
-    }
   }
 
   return false;
