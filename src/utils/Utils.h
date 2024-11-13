@@ -22,6 +22,7 @@ constexpr uint8_t DEFAULT_KEYID[16]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 // Placeholder for unknown AP4_Track id
 constexpr uint32_t AP4_TRACK_ID_UNKNOWN = -1;
 
+std::vector<uint8_t> HvccToAnnexb(const std::vector<uint8_t>& hvcc);
 std::vector<uint8_t> AnnexbToHvcc(const std::vector<uint8_t>& annexb);
 std::vector<uint8_t> AnnexbToAvc(const std::vector<uint8_t>& annexb);
 bool IsAnnexB(const std::vector<uint8_t>& data);
