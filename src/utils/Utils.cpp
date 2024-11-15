@@ -11,7 +11,6 @@
 #include "Base64Utils.h"
 #include "StringUtils.h"
 #include "log.h"
-#include "kodi/tools/StringUtils.h"
 
 #include <algorithm> // any_of
 #include <chrono>
@@ -20,6 +19,63 @@
 
 using namespace UTILS;
 using namespace kodi::tools;
+
+std::vector<uint8_t> UTILS::HvccToAnnexb(const std::vector<uint8_t>& hvcc)
+{
+  if (hvcc.size() < 23)
+  {
+    LOG::LogF(LOGERROR, "Cannot convert HVCC data, wrong data size");
+    return {};
+  }
+
+  std::vector<uint8_t> result;
+  const uint8_t* data = hvcc.data() + 22; // Start after length field
+  const uint8_t* end = hvcc.data() + hvcc.size();
+  uint8_t numSequences = *data++;
+
+  for (uint8_t i = 0; i < numSequences; ++i)
+  {
+    if (data + 2 > end)
+    {
+      LOG::LogF(LOGERROR, "Cannot convert HVCC data, wrong data size");
+      return {};
+    }
+
+    uint8_t nalType = (*data++ << 1);
+    uint16_t numNals = (data[0] << 8) | data[1];
+    data += 2;
+
+    for (uint16_t j = 0; j < numNals; ++j)
+    {
+      if (data + 2 > end)
+      {
+        LOG::LogF(LOGERROR, "Cannot convert HVCC data, wrong data size");
+        return {};
+      }
+
+      uint16_t nalSize = (data[0] << 8) | data[1];
+      data += 2;
+
+      if (data + nalSize > end)
+      {
+        LOG::LogF(LOGERROR, "Cannot convert HVCC data, wrong data size");
+        return {};
+      }
+
+      // Add Annex B start code
+      result.emplace_back(0x00);
+      result.emplace_back(0x00);
+      result.emplace_back(0x00);
+      result.emplace_back(0x01);
+
+      // Copy NAL data
+      result.insert(result.end(), data, data + nalSize);
+      data += nalSize;
+    }
+  }
+
+  return result;
+}
 
 std::vector<uint8_t> UTILS::AnnexbToHvcc(const std::vector<uint8_t>& annexb)
 {

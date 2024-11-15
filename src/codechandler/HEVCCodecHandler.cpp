@@ -13,21 +13,13 @@
 
 using namespace UTILS;
 
-HEVCCodecHandler::HEVCCodecHandler(AP4_SampleDescription* sd, bool isRequiredAnnexB)
-  : CodecHandler(sd)
+HEVCCodecHandler::HEVCCodecHandler(AP4_SampleDescription* sd) : CodecHandler(sd)
 {
   if (AP4_HevcSampleDescription* hevcSampleDescription =
           AP4_DYNAMIC_CAST(AP4_HevcSampleDescription, m_sampleDescription))
   {
-    if (isRequiredAnnexB)
-    {
-      ExtraDataToAnnexB();
-    }
-    else
-    {
-      m_extraData.SetData(hevcSampleDescription->GetRawBytes().GetData(),
-                          hevcSampleDescription->GetRawBytes().GetDataSize());
-    }
+    m_extraData.SetData(hevcSampleDescription->GetRawBytes().GetData(),
+                        hevcSampleDescription->GetRawBytes().GetDataSize());
     m_naluLengthSize = hevcSampleDescription->GetNaluLengthSize();
   }
 }
@@ -40,9 +32,8 @@ bool HEVCCodecHandler::CheckExtraData(std::vector<uint8_t>& extraData, bool isRe
   // Make sure that extradata is in the required format
   if (isRequiredAnnexB && !UTILS::IsAnnexB(extraData))
   {
-    //! @todo: this was never implemented on the older ISA versions
-    LOG::LogF(LOGDEBUG, "Required extradata annex b format, data conversion not implemented");
-    return false;
+    extraData = UTILS::HvccToAnnexb(extraData);
+    return true;
   }
   if (!isRequiredAnnexB && UTILS::IsAnnexB(extraData))
   {
@@ -50,52 +41,6 @@ bool HEVCCodecHandler::CheckExtraData(std::vector<uint8_t>& extraData, bool isRe
     return true;
   }
 
-  return false;
-}
-
-bool HEVCCodecHandler::ExtraDataToAnnexB()
-{
-  if (AP4_HevcSampleDescription* hevcSampleDescription =
-          AP4_DYNAMIC_CAST(AP4_HevcSampleDescription, m_sampleDescription))
-  {
-    const AP4_Array<AP4_HvccAtom::Sequence>& sequences = hevcSampleDescription->GetSequences();
-
-    if (sequences.ItemCount() == 0)
-    {
-      LOG::LogF(LOGWARNING, "No available sequences for HEVC codec extra data");
-      return false;
-    }
-
-    //calculate the size for annexb
-    AP4_Size size{0};
-    for (unsigned int i{0}; i < sequences.ItemCount(); ++i)
-    {
-      for (unsigned int j{0}; j < sequences[i].m_Nalus.ItemCount(); ++j)
-      {
-        size += sequences[i].m_Nalus[j].GetDataSize() + 4;
-      }
-    }
-
-    m_extraData.SetDataSize(size);
-    uint8_t* cursor(m_extraData.UseData());
-
-    for (unsigned int i{0}; i < sequences.ItemCount(); ++i)
-    {
-      for (unsigned int j{0}; j < sequences[i].m_Nalus.ItemCount(); ++j)
-      {
-        cursor[0] = 0;
-        cursor[1] = 0;
-        cursor[2] = 0;
-        cursor[3] = 1;
-        memcpy(cursor + 4, sequences[i].m_Nalus[j].GetData(),
-               sequences[i].m_Nalus[j].GetDataSize());
-        cursor += sequences[i].m_Nalus[j].GetDataSize() + 4;
-      }
-    }
-    LOG::LogF(LOGDEBUG, "Converted %lu bytes HEVC codec extradata", m_extraData.GetDataSize());
-    return true;
-  }
-  LOG::LogF(LOGWARNING, "No HevcSampleDescription - annexb extradata not available");
   return false;
 }
 

@@ -13,10 +13,9 @@
 class ATTR_DLL_LOCAL AVCCodecHandler : public CodecHandler
 {
 public:
-  AVCCodecHandler(AP4_SampleDescription* sd, bool isRequiredAnnexB);
+  AVCCodecHandler(AP4_SampleDescription* sd);
 
   bool CheckExtraData(std::vector<uint8_t>& extraData, bool isRequiredAnnexB) override;
-  bool ExtraDataToAnnexB() override;
   void UpdatePPSId(const AP4_DataBuffer& buffer) override;
   bool GetInformation(kodi::addon::InputstreamInfo& info) override;
   STREAMCODEC_PROFILE GetProfile() override { return m_codecProfile; };

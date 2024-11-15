@@ -13,9 +13,8 @@
 class ATTR_DLL_LOCAL HEVCCodecHandler : public CodecHandler
 {
 public:
-  HEVCCodecHandler(AP4_SampleDescription* sd, bool isRequiredAnnexB);
+  HEVCCodecHandler(AP4_SampleDescription* sd);
 
   bool CheckExtraData(std::vector<uint8_t>& extraData, bool isRequiredAnnexB) override;
-  bool ExtraDataToAnnexB() override;
   bool GetInformation(kodi::addon::InputstreamInfo& info) override;
 };
