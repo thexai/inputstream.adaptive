@@ -1,3 +1,9 @@
+v22.1.10 (2024-11-16)
+- Changes/cleanups to MP4 AVCC/HVCC extradata conversions
+- Removed deprecated API ADDON_READ_CHUNKED uses
+- Replaced API ADDON_READ_AUDIO_VIDEO with ADDON_READ_NO_BUFFER
+- Other code cleanups
+
 v22.1.9 (2024-11-05)
 - New test samples python addon (on github sources or see wiki)
 - [SmoothStreaming] Fix corrupted playback regression
