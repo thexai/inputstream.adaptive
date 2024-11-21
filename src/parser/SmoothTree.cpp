@@ -196,6 +196,7 @@ void adaptive::CSmoothTree::ParseTagStreamIndex(pugi::xml_node nodeSI,
                                STRING::ToHexadecimal(protParser.GetKID()));
   }
 
+  // Language code format ISO 639-2
   adpSet->SetLanguage(XML::GetAttrib(nodeSI, "Language"));
 
   // Default frequency 10000000 (10Khz)

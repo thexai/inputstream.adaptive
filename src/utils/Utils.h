@@ -50,6 +50,11 @@ uint64_t GetTimestampMs();
  */
 std::vector<uint8_t> ZeroPadding(const std::vector<uint8_t>& data, const size_t padSize);
 
+namespace LANG_CODE
+{
+constexpr const char* UNDETERMINED = "und"; // Kodi language code for unknown language
+}
+
 namespace CODEC
 {
 constexpr const char* NAME_UNKNOWN = "unk"; // Kodi codec name for unknown codec
