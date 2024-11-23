@@ -673,7 +673,13 @@ void SESSION::CSession::AddStream(PLAYLIST::CAdaptationSet* adp,
 
   stream.m_info.SetFlags(flags);
   stream.m_info.SetPhysicalIndex(uniqueId);
-  stream.m_info.SetLanguage(adp->GetLanguage());
+
+  std::string langCode = adp->GetLanguage();
+  if (langCode.empty() && stream.m_info.GetStreamType() != INPUTSTREAM_TYPE_VIDEO)
+    langCode = LANG_CODE::UNDETERMINED;
+
+  stream.m_info.SetLanguage(langCode);
+
   stream.m_info.ClearExtraData();
   stream.m_info.SetFeatures(0);
 

@@ -507,7 +507,10 @@ void adaptive::CDashTree::ParseTagAdaptationSet(pugi::xml_node nodeAdp, PLAYLIST
   }
 
   adpSet->SetGroup(XML::GetAttrib(nodeAdp, "group"));
+
+  // Language code format IETF RFC 5646 (BCP-47)
   adpSet->SetLanguage(XML::GetAttrib(nodeAdp, "lang"));
+
   adpSet->SetName(XML::GetAttrib(nodeAdp, "name"));
   adpSet->SetResWidth(XML::GetAttribInt(nodeAdp, "width"));
   adpSet->SetResHeight(XML::GetAttribInt(nodeAdp, "height"));

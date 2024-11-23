@@ -1401,7 +1401,7 @@ bool adaptive::CHLSTree::ParseRenditon(const Rendition& r,
     return false;
 
   adpSet->SetStreamType(streamType);
-  adpSet->SetLanguage(r.m_language.empty() ? "unk" : r.m_language);
+  adpSet->SetLanguage(r.m_language);
   adpSet->SetName(r.m_name);
   adpSet->SetIsDefault(r.m_isDefault);
   adpSet->SetIsForced(r.m_isForced);
@@ -1479,7 +1479,7 @@ bool adaptive::CHLSTree::ParseMultivariantPlaylist(const std::string& data)
       rend.m_type = attribs["TYPE"];
       rend.m_groupId = attribs["GROUP-ID"];
       rend.m_name = attribs["NAME"];
-      rend.m_language = attribs["LANGUAGE"];
+      rend.m_language = attribs["LANGUAGE"]; // Language code format IETF RFC 5646 (BCP-47)
       if (streamType == StreamType::AUDIO)
       {
         rend.m_channels = STRING::ToUint32(attribs["CHANNELS"], 2);
@@ -1699,7 +1699,7 @@ bool adaptive::CHLSTree::ParseMultivariantPlaylist(const std::string& data)
       // Initialize a rendition with generic info
       Rendition r;
       r.m_channels = 2;
-      r.m_language = "unk";
+      r.m_language = LANG_CODE::UNDETERMINED;
       r.m_type = "AUDIO";
 
       if (!var.m_groupIdAudio.empty())
@@ -1820,7 +1820,7 @@ void adaptive::CHLSTree::AddIncludedAudioStream(std::unique_ptr<PLAYLIST::CPerio
   auto newAdpSet = CAdaptationSet::MakeUniquePtr(period.get());
   newAdpSet->SetStreamType(StreamType::AUDIO);
   newAdpSet->SetContainerType(ContainerType::MP4);
-  newAdpSet->SetLanguage("unk"); // Unknown
+  newAdpSet->SetLanguage(LANG_CODE::UNDETERMINED);
 
   auto repr = CRepresentation::MakeUniquePtr(newAdpSet.get());
   repr->SetTimescale(TIMESCALE);
