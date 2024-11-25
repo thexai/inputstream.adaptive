@@ -137,6 +137,18 @@ std::string GetVideoCodec(std::string_view codecs)
   }
   return "";
 }
+
+// \brief Get the first subtitle codec string from CODECS attribute list
+std::string GetSubtitleCodec(std::string_view codecs)
+{
+  const std::vector<std::string> list = STRING::SplitToVec(codecs, ',');
+  for (const std::string& codecStr : list)
+  {
+    if (CODEC::IsSubtitleFourCC(codecStr))
+      return codecStr;
+  }
+  return "";
+}
 } // unnamed namespace
 
 adaptive::CHLSTree::CHLSTree() : AdaptiveTree()
@@ -1645,9 +1657,17 @@ bool adaptive::CHLSTree::ParseMultivariantPlaylist(const std::string& data)
 
     if (!ParseRenditon(r, newAdpSet, newRepr))
       continue;
-    // Use WebVTT as default subtitle codec
-    newRepr->AddCodecs(CODEC::FOURCC_WVTT);
-    newAdpSet->AddCodecs(CODEC::FOURCC_WVTT);
+
+    // Find the codec string from a variant that references it
+    const Variant* varFound = FindVariantBySubtitleGroupId(r.m_groupId, pl.m_variants);
+    std::string codecStr;
+    if (varFound)
+      codecStr = GetSubtitleCodec(varFound->m_codecs);
+    if (codecStr.empty())
+      codecStr = CODEC::FOURCC_WVTT; // WebVTT as default subtitle codec
+
+    newRepr->AddCodecs(codecStr);
+    newAdpSet->AddCodecs(codecStr);
 
     newAdpSet->AddRepresentation(newRepr);
     period->AddAdaptationSet(newAdpSet);
@@ -1866,6 +1886,18 @@ const adaptive::CHLSTree::Variant* adaptive::CHLSTree::FindVariantByAudioGroupId
   auto itVar =
       std::find_if(variants.cbegin(), variants.cend(),
                    [&groupId](const Variant& item) { return item.m_groupIdAudio == groupId; });
+  if (itVar != variants.cend())
+    return &(*itVar);
+
+  return nullptr;
+}
+
+const adaptive::CHLSTree::Variant* adaptive::CHLSTree::FindVariantBySubtitleGroupId(
+    std::string groupId, std::vector<Variant>& variants) const
+{
+  auto itVar =
+      std::find_if(variants.cbegin(), variants.cend(),
+                   [&groupId](const Variant& item) { return item.m_groupIdSubtitles == groupId; });
   if (itVar != variants.cend())
     return &(*itVar);
 
