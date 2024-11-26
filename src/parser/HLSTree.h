@@ -210,6 +210,15 @@ private:
                                            std::vector<Variant>& variants) const;
 
   /*!
+   * \brief Find the first variant with the specified audio group id.
+   * \param groupId The group id
+   * \param variants The variants where search for
+   * \return The variant if found, otherwise nullptr
+   */
+  const adaptive::CHLSTree::Variant* FindVariantBySubtitleGroupId(
+      std::string groupId, std::vector<Variant>& variants) const;
+
+  /*!
    * \brief Find the first rendition with the specified group id.
    * \param groupId The group id
    * \param renditions The renditions where search for
