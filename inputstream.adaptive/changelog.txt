@@ -1,3 +1,8 @@
+v22.1.11 (2024-12-20)
+- Fix aarch64 widevine library loading
+- Unknown subtitles are now set correctly as Undetermined
+- [HLS] Add support to read subtitle codec from manifest (fix TTML subtitles)
+
 v22.1.10 (2024-11-16)
 - Changes/cleanups to MP4 AVCC/HVCC extradata conversions
 - Removed deprecated API ADDON_READ_CHUNKED uses
