@@ -819,12 +819,11 @@ void SESSION::CSession::UpdateStream(CStream& stream)
       stream.m_info.SetCodecName(CODEC::NAME_DTS);
     else if (CODEC::Contains(codecs, CODEC::FOURCC_AC_3, codecStr))
       stream.m_info.SetCodecName(CODEC::NAME_AC3);
-    else if (CODEC::Contains(codecs, CODEC::NAME_EAC3_JOC, codecStr) ||
-             CODEC::Contains(codecs, CODEC::FOURCC_EC_3, codecStr))
+    else if (CODEC::Contains(codecs, CODEC::FOURCC_EC_3, codecStr))
     {
-      // In the above condition above is checked NAME_EAC3_JOC as first,
-      // in order to get the codec string to signal DD+ Atmos in to the SetCodecInternalName
       stream.m_info.SetCodecName(CODEC::NAME_EAC3);
+      if (CODEC::Contains(codecs, CODEC::NAME_EAC3_JOC))
+        stream.m_info.SetCodecProfile(STREAMCODEC_PROFILE::DDPlusCodecProfileAtmos);
     }
     else if (CODEC::Contains(codecs, CODEC::FOURCC_OPUS, codecStr))
       stream.m_info.SetCodecName(CODEC::NAME_OPUS);

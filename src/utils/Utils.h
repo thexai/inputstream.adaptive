@@ -59,7 +59,7 @@ namespace CODEC
 {
 constexpr const char* NAME_UNKNOWN = "unk"; // Kodi codec name for unknown codec
 
-// Kodi internal codec name to signal DD+ Atmos ("joc"), not a ffmpeg definition
+// ISA internal codec name to signal DD+ Atmos profile ("joc")
 constexpr const char* NAME_EAC3_JOC = "eac3-joc";
 
 // IMPORTANT: Codec names must match the ffmpeg library definition
